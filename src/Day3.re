@@ -1,3 +1,11 @@
+type claim = {
+  id: int,
+  xOffset: int,
+  yOffset: int,
+  width: int,
+  height: int,
+};
+
 let getXAndYCoordsPreOffset = (width, height) =>
   Belt.List.makeBy(width, x => Belt.List.makeBy(height, y => (x, y)))
   ->Belt.List.flatten;
@@ -17,18 +25,6 @@ let getCoordsLookup = (coordsLookup, coords) =>
       ->Belt.Map.String.getWithDefault(coord, 0)
       ->(count => lookup->Belt.Map.String.set(coord, count + 1))
     );
-
-type claim = {
-  id: int,
-  xOffset: int,
-  yOffset: int,
-  width: int,
-  height: int,
-};
-
-let test1 = "#1 @ 1,3: 4x4
-#2 @ 3,1: 4x4
-#3 @ 5,5: 2x2";
 
 let stringToClaim = s =>
   (Js.Re.fromString("#(\d+) @ (\d+),(\d+): (\d+)x(\d+)") |> Js.Re.exec(s))
