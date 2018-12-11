@@ -1,0 +1,100 @@
+<body>
+  <svg id="main"></svg> <button id="start">Start</button>
+  <textarea id="input"></textarea>
+  <script>
+    const parseLine = line => {
+      [one, two, three] = line.split(",");
+      xPos = Number(one.split("<")[1]);
+      yPos = Number(two.split(">")[0]);
+      xVel = Number(two.split("<")[1]);
+      yVel = Number(three.split(">")[0]);
+      return { xPos, yPos, xVel, yVel };
+    };
+    const clearPoints = () => {
+      const svg = document.getElementById("main");
+      svg.innerHTML = "";
+    };
+    const printPoints = points => {
+      const container = document.getElementById("main");
+      points.forEach(({ xPos, yPos }) => {
+        const circle = document.createElementNS(
+          "http://www.w3.org/2000/svg",
+          "circle"
+        );
+        circle.setAttributeNS(null, "cx", xPos);
+        circle.setAttributeNS(null, "cy", yPos);
+        circle.setAttributeNS(null, "r", 1);
+        circle.setAttributeNS(
+          null,
+          "style",
+          "fill: black; stroke: black; stroke-width: 1px;"
+        );
+        container.appendChild(circle);
+      });
+    };
+    const sum = xs => xs.reduce((sum, x) => sum + x, 0);
+    const getPointTotalDistance = points => {
+      return sum(
+        points.map(({ xPos, yPos }) => {
+          return sum(
+            points.map(({ xPos: xPos2, yPos: yPos2 }) =>
+              Math.sqrt(
+                Math.pow(Math.abs(xPos - xPos2), 2) +
+                  Math.pow(Math.abs(yPos - yPos2), 2)
+              )
+            )
+          );
+        })
+      );
+    };
+    const updatePoints = (points, modifier) => {
+      const newPoints = points.map(({ xPos, yPos, xVel, yVel }) => ({
+        xPos: xPos + xVel * modifier,
+        yPos: yPos + yVel * modifier,
+        xVel,
+        yVel
+      }));
+      return newPoints;
+    };
+    const getClosestPointSpot = points => {
+      let min = Infinity;
+      let minPoints = null;
+      let curPoints = points;
+      let count = 0;
+      while (true) {
+        curPoints = updatePoints(curPoints, 1);
+        let newDist = getPointTotalDistance(curPoints);
+        if (newDist < min) {
+          count += 1;
+          min = newDist;
+          minPoints = curPoints;
+        } else {
+          console.log(count);
+          return minPoints;
+        }
+      }
+    };
+    const min = xs => xs.reduce((min, x) => (x < min ? x : min), Infinity);
+    const max = xs => xs.reduce((max, x) => (x > max ? x : max), 0);
+    document.getElementById("start").onclick = () => {
+      const puzzleInput = document.getElementById("input").value;
+      let posAndVel = puzzleInput
+        .trim()
+        .split("\n")
+        .map(parseLine);
+      posAndVel = getClosestPointSpot(posAndVel);
+      shape = document.getElementsByTagName("svg")[0];
+      const minX = min(posAndVel.map(({ xPos }) => xPos));
+      const minY = min(posAndVel.map(({ yPos }) => yPos));
+      const maxX = max(posAndVel.map(({ xPos }) => xPos));
+      const maxY = max(posAndVel.map(({ yPos }) => yPos));
+      const width = maxX - minX;
+      const height = maxY - minY;
+      shape.setAttribute(
+        "viewBox",
+        minX + " " + minY + " " + width + " " + height
+      );
+      printPoints(posAndVel);
+    };
+  </script>
+</body>
